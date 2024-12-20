@@ -113,33 +113,6 @@ class Pettersson1949:
 
 class TimberEdgrenDiameter:
     @staticmethod
-    def get_base_diameter(timber: Timber) -> float:
-        """
-        Calculate the base diameter (DBAS) of the tree using the diameter at breast height (DBH).
-        
-        :param timber: Timber object containing tree data.
-        :return: The base diameter (DBAS) in cm.
-        """
-        # Calculate relative diameter at breast height (1.3m)
-        dbh_relative = TimberEdgrenDiameter.get_relative_diameter(
-            rel_height=1.3 / timber.height_m, timber=timber
-        )
-    
-        # Validate relative diameter
-        if dbh_relative is None or dbh_relative <= 0:
-            print(f"Warning: Invalid relative diameter at breast height: {dbh_relative}")
-            return None
-    
-        # Compute base diameter (DBAS)
-        base_diameter = 100 * (timber.diameter_cm / dbh_relative)
-        if base_diameter <= 0:
-            print(f"Warning: Invalid base diameter: {base_diameter}")
-            return None
-    
-        return base_diameter
-
-    
-    @staticmethod
     def get_relative_diameter(rel_height: float, timber: Timber) -> float:
         """
         Calculate the relative diameter at a given relative height using the taper function.
@@ -167,11 +140,11 @@ class TimberEdgrenDiameter:
             form_factor_ub=form_factor,
         )
 
-        inflexion_point = EdgrenNylinder1942.get_inflexion_point(
+        inflexion_point = EdgrenNylinder1949.get_inflexion_point(
             species=timber.species, north=(timber.region == "northern"), form_quotient=form_quotient
         )
 
-        constants = EdgrenNylinder1942.get_constants(
+        constants = EdgrenNylinder1949.get_constants(
             species=timber.species, north=(timber.region == "northern"), form_factor=form_quotient
         )
 
@@ -188,6 +161,33 @@ class TimberEdgrenDiameter:
         else:
             print(f"Warning: Unexpected value for relative height: {rel_height}")
             return None
+
+
+    @staticmethod
+    def get_base_diameter(timber: Timber) -> float:
+        """
+        Calculate the base diameter (DBAS) of the tree using the diameter at breast height (DBH).
+        
+        :param timber: Timber object containing tree data.
+        :return: The base diameter (DBAS) in cm.
+        """
+        # Calculate relative diameter at breast height (1.3m)
+        dbh_relative = TimberEdgrenDiameter.get_relative_diameter(
+            rel_height=1.3 / timber.height_m, timber=timber
+        )
+    
+        # Validate relative diameter
+        if dbh_relative is None or dbh_relative <= 0:
+            print(f"Warning: Invalid relative diameter at breast height: {dbh_relative}")
+            return None
+    
+        # Compute base diameter (DBAS)
+        base_diameter = 100 * (timber.diameter_cm / dbh_relative)
+        if base_diameter <= 0:
+            print(f"Warning: Invalid base diameter: {base_diameter}")
+            return None
+    
+        return base_diameter
 
     @staticmethod
     def get_diameter_at_height(timber: Timber, height: float) -> Optional[float]:
