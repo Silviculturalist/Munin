@@ -103,11 +103,16 @@ def test_metrics_is_copy_not_view():
     model = ExampleStandGeneralModel()
     ctx = model.build_context(_tree_list_stand(), mode_hint="aggregate")
     ctx.set_aggregate_metrics(ba_total=30.0, stems_total=900.0)
-    m = ctx.metrics
-    # mutate external view
-    m["Stems"]["TOTAL"] = 1234.5  # arbitrary
-    # internal value must be unchanged
-    assert float(ctx.metrics["Stems"]["TOTAL"]) == pytest.approx(900.0)
+    m1 = ctx.metrics  # snapshot 1
+    m2 = ctx.metrics  # snapshot 2
+    # Same values, different objects — proves it's a copy each time
+    assert m1 is not m2
+    assert m1.keys() == m2.keys()
+    assert m1["Stems"] is not m2["Stems"]
+    # Now change the *internal* store; a new snapshot should change, old should not
+    ctx.set_aggregate_metrics(ba_total=31.0, stems_total=901.0)
+    assert float(m1["Stems"]["TOTAL"]) == pytest.approx(900.0)
+    assert float(ctx.metrics["Stems"]["TOTAL"]) == pytest.approx(901.0)
 
 
 def test_qmd_recomputed_from_ba_and_n():
@@ -194,8 +199,24 @@ def test_spatial_adapter_seed_makes_positions_deterministic():
     st2 = _tree_list_stand(with_positions=False)
     ctx1 = model.build_context(st1, mode_hint="spatial", adapter_kwargs={"seed": 1234})
     ctx2 = model.build_context(st2, mode_hint="spatial", adapter_kwargs={"seed": 1234})
-    pos1 = [(float(t.position.x), float(t.position.y)) for p in ctx1.plots for t in p.trees]
-    pos2 = [(float(t.position.x), float(t.position.y)) for p in ctx2.plots for t in p.trees]
+
+    def _xy_list(ctx):
+        coords = []
+        for p in ctx.plots:
+            for t in p.trees:
+                pos = getattr(t, "position", None)
+                # Prove to the type checker and the test that position exists
+                assert pos is not None, "expected a position on every tree in spatial mode"
+                # Support both tuple-like (x, y) and attribute (.x, .y) forms
+                try:
+                    x, y = pos  # tuple-like
+                except Exception:
+                    x, y = pos.x, pos.y
+                coords.append((float(x), float(y)))
+        return coords
+
+    pos1 = _xy_list(ctx1)
+    pos2 = _xy_list(ctx2)
     assert pos1 == pos2
 
 
