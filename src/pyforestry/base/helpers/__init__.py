@@ -33,6 +33,27 @@ from .bucking import (
     _TreeCache,
 )
 
+# --- Simulation API (breaking change: lives under base.sim) ---
+from ..simulation import (  # noqa: F401
+    SimulationContext,
+    ActionSpec,
+    GrowthModel,
+    ExampleStandGeneralModel,
+    Requirements,
+    SimulationSetup,
+    TriggerSpec,
+    ScheduledOp,
+    ContextEnsemble,
+    PythonEngine,
+    BatchEngine,
+    AdapterRegistry,
+    AngleCountToPseudoTreesAdapter,
+    AngleCountToSpatialPseudoTreesAdapter,
+    AngleCountToDiameterClassAdapter,
+    TreeListToDiameterClassAdapter,
+    TreeListToSpatialAdapter,
+)
+
 # isort: on
 
 __all__ = [
@@ -74,4 +95,22 @@ __all__ = [
     "BuckingConfig",
     "_TreeCache",
     "QualityType",
+    # Simulation exports (breaking API housed in base.sim)
+    "SimulationContext",
+    "ActionSpec",
+    "GrowthModel",
+    "ExampleStandGeneralModel",
+    "Requirements",
+    "SimulationSetup",
+    "TriggerSpec",
+    "ScheduledOp",
+    "ContextEnsemble",
+    "PythonEngine",
+    "BatchEngine",
+    "AdapterRegistry",
+    "AngleCountToPseudoTreesAdapter",
+    "AngleCountToSpatialPseudoTreesAdapter",
+    "AngleCountToDiameterClassAdapter",
+    "TreeListToDiameterClassAdapter",
+    "TreeListToSpatialAdapter",
 ]
